@@ -24,19 +24,22 @@ CREATE        INDEX keypairs_key2_idx ON keypairs (key2);
 CREATE UNIQUE INDEX key_distributions_key_idx ON key_distributions (key);
 
 INSERT INTO stats (key, value) SELECT 'num_keys',                  count(*) FROM keys;
-INSERT INTO stats (key, value) SELECT 'num_keys_on_nodes',         count(*) FROM keys WHERE count_nodes     > 0;
-INSERT INTO stats (key, value) SELECT 'num_keys_on_ways',          count(*) FROM keys WHERE count_ways      > 0;
-INSERT INTO stats (key, value) SELECT 'num_keys_on_relations',     count(*) FROM keys WHERE count_relations > 0;
+INSERT INTO stats (key, value) SELECT 'num_keys_on_nodes',         count(*) FROM keys WHERE count_nodes      > 0;
+INSERT INTO stats (key, value) SELECT 'num_keys_on_ways',          count(*) FROM keys WHERE count_ways       > 0;
+INSERT INTO stats (key, value) SELECT 'num_keys_on_closedways',    count(*) FROM keys WHERE count_closedways > 0;
+INSERT INTO stats (key, value) SELECT 'num_keys_on_relations',     count(*) FROM keys WHERE count_relations  > 0;
 
 INSERT INTO stats (key, value) SELECT 'num_tags',                  count(*) FROM tags;
-INSERT INTO stats (key, value) SELECT 'num_tags_on_nodes',         count(*) FROM tags WHERE count_nodes     > 0;
-INSERT INTO stats (key, value) SELECT 'num_tags_on_ways',          count(*) FROM tags WHERE count_ways      > 0;
-INSERT INTO stats (key, value) SELECT 'num_tags_on_relations',     count(*) FROM tags WHERE count_relations > 0;
+INSERT INTO stats (key, value) SELECT 'num_tags_on_nodes',         count(*) FROM tags WHERE count_nodes      > 0;
+INSERT INTO stats (key, value) SELECT 'num_tags_on_ways',          count(*) FROM tags WHERE count_ways       > 0;
+INSERT INTO stats (key, value) SELECT 'num_tags_on_closedways',    count(*) FROM tags WHERE count_closedways > 0;
+INSERT INTO stats (key, value) SELECT 'num_tags_on_relations',     count(*) FROM tags WHERE count_relations  > 0;
 
 INSERT INTO stats (key, value) SELECT 'num_keypairs',              count(*) FROM keypairs;
-INSERT INTO stats (key, value) SELECT 'num_keypairs_on_nodes',     count(*) FROM keypairs WHERE count_nodes     > 0;
-INSERT INTO stats (key, value) SELECT 'num_keypairs_on_ways',      count(*) FROM keypairs WHERE count_ways      > 0;
-INSERT INTO stats (key, value) SELECT 'num_keypairs_on_relations', count(*) FROM keypairs WHERE count_relations > 0;
+INSERT INTO stats (key, value) SELECT 'num_keypairs_on_nodes',     count(*) FROM keypairs WHERE count_nodes      > 0;
+INSERT INTO stats (key, value) SELECT 'num_keypairs_on_ways',      count(*) FROM keypairs WHERE count_ways       > 0;
+INSERT INTO stats (key, value) SELECT 'num_keypairs_on_closedways',count(*) FROM keypairs WHERE count_closedways > 0;
+INSERT INTO stats (key, value) SELECT 'num_keypairs_on_relations', count(*) FROM keypairs WHERE count_relations  > 0;
 
 INSERT INTO stats (key, value) SELECT 'characters_in_keys_plain',   count(*) FROM keys WHERE characters='plain';
 INSERT INTO stats (key, value) SELECT 'characters_in_keys_colon',   count(*) FROM keys WHERE characters='colon';
@@ -45,8 +48,8 @@ INSERT INTO stats (key, value) SELECT 'characters_in_keys_space',   count(*) FRO
 INSERT INTO stats (key, value) SELECT 'characters_in_keys_problem', count(*) FROM keys WHERE characters='problem';
 INSERT INTO stats (key, value) SELECT 'characters_in_keys_rest',    count(*) FROM keys WHERE characters='rest';
 
-INSERT INTO stats (key, value) VALUES ('objects',     (SELECT sum(value) FROM stats WHERE key IN ('nodes', 'ways', 'relations')));
-INSERT INTO stats (key, value) VALUES ('object_tags', (SELECT sum(value) FROM stats WHERE key IN ('node_tags', 'way_tags', 'relation_tags')));
+INSERT INTO stats (key, value) VALUES ('objects',     (SELECT sum(value) FROM stats WHERE key IN ('nodes', 'ways', 'closedways', 'relations')));
+INSERT INTO stats (key, value) VALUES ('object_tags', (SELECT sum(value) FROM stats WHERE key IN ('node_tags', 'way_tags', 'closedway_tags', 'relation_tags')));
 
 -- XXX this can probably be removed
 UPDATE keys SET prevalent_values=(
