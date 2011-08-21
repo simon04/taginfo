@@ -93,7 +93,7 @@ end
 
 def get_filter
     f = params[:filter].to_s == '' ? 'all' : params[:filter]
-    if f !~ /^(all|nodes|ways|relations)$/
+    if f !~ /^(all|nodes|ways|closedways|relations)$/
         raise ArgumentError, "unknown filter"
     end
     f
@@ -104,6 +104,7 @@ def get_total(type)
         'all'       => 'objects',
         'nodes'     => 'nodes_with_tags',
         'ways'      => 'ways',
+        'closedways'=> 'closed_ways',
         'relations' => 'relations' }[type]
     return @db.stats(key)
 end

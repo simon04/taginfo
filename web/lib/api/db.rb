@@ -13,7 +13,7 @@ class Taginfo < Sinatra::Base
         :parameters => { :query => 'Only show keys matching this query (substring match, optional).' },
         :paging => :optional,
         :filter => @@filters,
-        :sort => %w( key count_all count_nodes count_ways count_relations values_all users_all in_wiki in_josm in_potlatch length ),
+        :sort => %w( key count_all count_nodes count_ways count_closedways count_relations values_all users_all in_wiki in_josm in_potlatch length ),
         :result => {
             :key                      => :STRING, 
             :count_all                => :INT,
@@ -22,6 +22,8 @@ class Taginfo < Sinatra::Base
             :count_nodes_fraction     => :FLOAT,
             :count_ways               => :INT,
             :count_ways_fraction      => :FLOAT,
+            :count_closedways         => :INT,
+            :count_closedways_fraction=> :FLOAT,
             :count_relations          => :INT,
             :count_relations_fraction => :FLOAT,
             :values_all               => :INT,
@@ -58,6 +60,7 @@ class Taginfo < Sinatra::Base
                 o.count_all
                 o.count_nodes
                 o.count_ways
+                o.count_closedways
                 o.count_relations
                 o.values_all
                 o.users_all
@@ -123,6 +126,8 @@ class Taginfo < Sinatra::Base
                 :count_nodes_fraction     => row['count_nodes'].to_f / @db.stats('nodes_with_tags'),
                 :count_ways               => row['count_ways'].to_i,
                 :count_ways_fraction      => row['count_ways'].to_f / @db.stats('ways'),
+                :count_closedways         => row['count_closedways'].to_i,
+                :count_closedways_fraction=> row['count_closedways'].to_f / @db.stats('closed_ways'),
                 :count_relations          => row['count_relations'].to_i,
                 :count_relations_fraction => row['count_relations'].to_f / @db.stats('relations'),
                 :values_all               => row['values_all'].to_i,
@@ -138,7 +143,7 @@ class Taginfo < Sinatra::Base
     end
 
     api(2, 'db/keys/overview', {
-        :description => 'Show statistics for nodes, ways, relations and total for this key.',
+        :description => 'Show statistics for nodes, ways, closed ways, relations and total for this key.',
         :parameters => { :key => 'Tag key (required).' },
         :paging => :no,
         :result => {
@@ -148,6 +153,11 @@ class Taginfo < Sinatra::Base
                 :values => :INT
             },
             :ways => {
+                :count => :INT,
+                :count_fraction => :FLOAT,
+                :values => :INT
+            },
+            :closedways => {
                 :count => :INT,
                 :count_fraction => :FLOAT,
                 :values => :INT
@@ -171,7 +181,7 @@ class Taginfo < Sinatra::Base
         out = Hash.new
 
         # default values
-        ['all', 'nodes', 'ways', 'relations'].each do |type|
+        ['all', 'nodes', 'ways', 'closedways', 'relations'].each do |type|
             out[type] = { :count => 0, :count_fraction => 0.0, :values => 0 }
         end
         out['users'] = 0;
@@ -179,7 +189,7 @@ class Taginfo < Sinatra::Base
         @db.select('SELECT * FROM db.keys').
             condition('key = ?', key).
             execute() do |row|
-                ['all', 'nodes', 'ways', 'relations'].each do |type|
+                ['all', 'nodes', 'ways', 'closedways', 'relations'].each do |type|
                     out[type] = {
                         :count          => row['count_'  + type].to_i,
                         :count_fraction => row['count_'  + type].to_f / get_total(type),
@@ -214,12 +224,13 @@ class Taginfo < Sinatra::Base
         },
         :paging => :optional,
         :filter => {
-            :all       => { :doc => 'No filter.' },
-            :nodes     => { :doc => 'Only values on tags used on nodes.' },
-            :ways      => { :doc => 'Only values on tags used on ways.' },
-            :relations => { :doc => 'Only values on tags used on relations.' }
+            :all        => { :doc => 'No filter.' },
+            :nodes      => { :doc => 'Only values on tags used on nodes.' },
+            :ways       => { :doc => 'Only values on tags used on ways.' },
+            :closedways => { :doc => 'Only values on tags used on closed ways.' },
+            :relations  => { :doc => 'Only values on tags used on relations.' }
         },
-        :sort => %w( value count_all count_nodes count_ways count_relations ),
+        :sort => %w( value count_all count_nodes count_ways count_closedways count_relations ),
         :result => { :value => :STRING, :count => :INT, :fraction => :FLOAT },
         :example => { :key => 'highway', :page => 1, :rp => 10, :sortname => 'count_ways', :sortorder => 'desc' },
         :ui => '/keys/highway#values'
@@ -252,6 +263,7 @@ class Taginfo < Sinatra::Base
                 o.count_all
                 o.count_nodes
                 o.count_ways
+                o.count_closedways
                 o.count_relations
             }.
             paging(params[:rp], params[:page]).
@@ -277,6 +289,7 @@ class Taginfo < Sinatra::Base
             :all       => { :doc => 'No filter.' },
             :nodes     => { :doc => 'Only values on tags used on nodes.' },
             :ways      => { :doc => 'Only values on tags used on ways.' },
+            :closedways=> { :doc => 'Only values on tags used on closed ways.' },
             :relations => { :doc => 'Only values on tags used on relations.' }
         },
         :sort => %w( together_count other_key from_fraction ),
@@ -366,7 +379,7 @@ class Taginfo < Sinatra::Base
     end
 
     api(2, 'db/tags/overview', {
-        :description => 'Show statistics for nodes, ways, relations and total for this tag.',
+        :description => 'Show statistics for nodes, ways, closed ways, relations and total for this tag.',
         :parameters => {
             :key => 'Tag key (required).',
             :value => 'Tag value (required).'
@@ -378,6 +391,10 @@ class Taginfo < Sinatra::Base
                 :count_fraction => :FLOAT,
             },
             :ways => {
+                :count => :INT,
+                :count_fraction => :FLOAT,
+            },
+            :closedways => {
                 :count => :INT,
                 :count_fraction => :FLOAT,
             },
@@ -399,7 +416,7 @@ class Taginfo < Sinatra::Base
         out = Hash.new
 
         # default values
-        ['all', 'nodes', 'ways', 'relations'].each do |type|
+        ['all', 'nodes', 'ways', 'closedways', 'relations'].each do |type|
             out[type] = { :count => 0, :count_fraction => 0.0 }
         end
 
@@ -407,7 +424,7 @@ class Taginfo < Sinatra::Base
             condition('key = ?', key).
             condition('value = ?', value).
             execute() do |row|
-                ['all', 'nodes', 'ways', 'relations'].each do |type|
+                ['all', 'nodes', 'ways', 'closedways', 'relations'].each do |type|
                     out[type] = {
                         :count          => row['count_'  + type].to_i,
                         :count_fraction => row['count_'  + type].to_f / get_total(type)
