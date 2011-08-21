@@ -38,12 +38,13 @@ struct eqstr {
  * Holds some counter for nodes, ways, and relations.
  */
 struct Counter {
-    uint32_t count[3];
+    uint32_t count[4];
 
     Counter() {
-        count[NODE]     = 0; // nodes
-        count[WAY]      = 0; // ways
-        count[RELATION] = 0; // relations
+        count[NODE]          = 0; // nodes
+        count[WAY]           = 0; // ways
+        count[RELATION]      = 0; // relations
+        count[AREA_FROM_WAY] = 0; // closed ways
     }
 
     uint32_t nodes() const {
@@ -55,8 +56,11 @@ struct Counter {
     uint32_t relations() const {
         return count[RELATION];
     }
+    uint32_t closedways() const {
+        return count[AREA_FROM_WAY];
+    }
     uint32_t all() const {
-        return count[NODE] + count[WAY] + count[RELATION];
+        return count[NODE] + count[WAY] + count[RELATION] + count[AREA_FROM_WAY];
     }
 };
 
@@ -105,18 +109,23 @@ public:
     GeoDistribution node_distribution;
 
     void update(const char *value, Osmium::OSM::Object *object, StringStore *string_store) {
-        key.count[object->get_type()]++;
+        osm_object_type_t type = object->get_type();
+        if (type == WAY && ((Osmium::OSM::Way*) object)->is_closed()) {
+            type = AREA_FROM_WAY;
+        }
+
+        key.count[type]++;
 
         value_hash_map_t::iterator values_iterator(values_hash.find(value));
         if (values_iterator == values_hash.end()) {
             Counter counter;
-            counter.count[object->get_type()] = 1;
+            counter.count[type] = 1;
             values_hash.insert(std::pair<const char *, Counter>(string_store->add(value), counter));
-            values.count[object->get_type()]++;
+            values.count[type]++;
         } else {
-            values_iterator->second.count[object->get_type()]++;
-            if (values_iterator->second.count[object->get_type()] == 1) {
-                values.count[object->get_type()]++;
+            values_iterator->second.count[type]++;
+            if (values_iterator->second.count[type] == 1) {
+                values.count[type]++;
             }
         }
 
@@ -336,19 +345,19 @@ public:
         timer = time(0);
 
         Osmium::Sqlite::Statement *statement_insert_into_keys = db->prepare("INSERT INTO keys (key, " \
-                " count_all,  count_nodes,  count_ways,  count_relations, " \
-                "values_all, values_nodes, values_ways, values_relations, " \
+                " count_all,  count_nodes,  count_ways,  count_relations,  count_closedways, " \
+                "values_all, values_nodes, values_ways, values_relations, values_closedways, " \
                 " users_all, " \
-                "grids) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+                "grids) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
 
         Osmium::Sqlite::Statement *statement_insert_into_tags = db->prepare("INSERT INTO tags (key, value, " \
-                "count_all, count_nodes, count_ways, count_relations) " \
-                "VALUES (?, ?, ?, ?, ?, ?);");
+                "count_all, count_nodes, count_ways, count_relations, count_closedways) " \
+                "VALUES (?, ?, ?, ?, ?, ?, ?);");
 
 #ifdef TAGSTATS_COUNT_KEY_COMBINATIONS
         Osmium::Sqlite::Statement *statement_insert_into_key_combinations = db->prepare("INSERT INTO keypairs (key1, key2, " \
-                "count_all, count_nodes, count_ways, count_relations) " \
-                "VALUES (?, ?, ?, ?, ?, ?);");
+                "count_all, count_nodes, count_ways, count_relations, count_closedways) " \
+                "VALUES (?, ?, ?, ?, ?, ?, ?);");
 #endif // TAGSTATS_COUNT_KEY_COMBINATIONS
 
         Osmium::Sqlite::Statement *statement_update_meta = db->prepare("UPDATE source SET data_until=?");
@@ -390,6 +399,7 @@ public:
                 ->bind_int64(values_iterator->second.nodes())       // column: count_nodes
                 ->bind_int64(values_iterator->second.ways())        // column: count_ways
                 ->bind_int64(values_iterator->second.relations())   // column: count_relations
+                ->bind_int64(values_iterator->second.closedways())  // column: count_closedways
                 ->execute();
             }
 
@@ -404,10 +414,12 @@ public:
             ->bind_int64(stat->key.nodes())        // column: count_nodes
             ->bind_int64(stat->key.ways())         // column: count_ways
             ->bind_int64(stat->key.relations())    // column: count_relations
+            ->bind_int64(stat->key.closedways())   // column: count_closedways
             ->bind_int64(stat->values_hash.size()) // column: values_all
             ->bind_int64(stat->values.nodes())     // column: values_nodes
             ->bind_int64(stat->values.ways())      // column: values_ways
             ->bind_int64(stat->values.relations()) // column: values_relations
+            ->bind_int64(stat->values.closedways())// column: values_closedways
 #ifdef TAGSTATS_COUNT_USERS
             ->bind_int64(stat->user_hash.size())   // column: users_all
 #else

@@ -15,14 +15,17 @@ CREATE TABLE keys (
   count_all        INTEGER DEFAULT 0,
   count_nodes      INTEGER DEFAULT 0,
   count_ways       INTEGER DEFAULT 0,
+  count_closedways INTEGER DEFAULT 0,
   count_relations  INTEGER DEFAULT 0,
   values_all       INTEGER DEFAULT 0,
   values_nodes     INTEGER DEFAULT 0,
   values_ways      INTEGER DEFAULT 0,
+  values_closedways INTEGER DEFAULT 0,
   values_relations INTEGER DEFAULT 0,
   users_all        INTEGER DEFAULT 0,
   users_nodes      INTEGER DEFAULT 0,
   users_ways       INTEGER DEFAULT 0,
+  users_closedways INTEGER DEFAULT 0,
   users_relations  INTEGER DEFAULT 0,
   grids            INTEGER DEFAULT 0,
   in_wiki          INTEGER DEFAULT 0,
@@ -58,6 +61,7 @@ CREATE TABLE tags (
   count_all        INTEGER DEFAULT 0,
   count_nodes      INTEGER DEFAULT 0,
   count_ways       INTEGER DEFAULT 0,
+  count_closedways INTEGER DEFAULT 0,
   count_relations  INTEGER DEFAULT 0,
   object_type      VARCHAR(1),          -- (n)ode, (w)ay, (r)elation
   object_id        INTEGER,
@@ -76,6 +80,7 @@ CREATE TABLE keypairs (
   count_all        INTEGER,
   count_nodes      INTEGER,
   count_ways       INTEGER,
-  count_relations  INTEGER 
+  count_closedways INTEGER,
+  count_relations  INTEGER
 );
 

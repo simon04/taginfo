@@ -56,7 +56,7 @@ jQuery('#filter').bind('change', function() {
 
 jQuery.getJSON('/api/2/db/tags/overview?key=#{ @key_uri }&value=#{ @value_uri }', function(data, textStatus) {
     var table_content = '<tr><th></th><th title="Number of objects with this tag">Number of objects</th></tr>';
-    table_content += jQuery.map(['all', 'nodes', 'ways', 'relations'], function(obj, i) {
+    table_content += jQuery.map(['all', 'nodes', 'ways', 'closedways', 'relations'], function(obj, i) {
         var d = data[obj];
         return '<tr><td>' + print_image(obj) + '</td><td class="count">' + print_value_with_percent(d.count, d.count_fraction) + '</td></tr>';
     }).join('');

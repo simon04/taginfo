@@ -19,10 +19,11 @@
 <form id="filter-form">
     <label for="filter">Filter:</label>
     <select id="filter" name="filter">
-        <option value="all"<%=       @sel['all']       %>>No filter</option>
-        <option value="nodes"<%=     @sel['nodes']     %>>Nodes only</option>
-        <option value="ways"<%=      @sel['ways']      %>>Ways only</option>
-        <option value="relations"<%= @sel['relations'] %>>Relations only</option>
+        <option value="all"<%=        @sel['all']        %>>No filter</option>
+        <option value="nodes"<%=      @sel['nodes']      %>>Nodes only</option>
+        <option value="ways"<%=       @sel['ways']       %>>Ways only</option>
+        <option value="closedways"<%= @sel['closedways'] %>>Closed Ways only</option>
+        <option value="relations"<%=  @sel['relations']  %>>Relations only</option>
     </select>
 </form>
 
@@ -114,7 +115,7 @@ jQuery('#filter').bind('change', function() {
 
 jQuery.getJSON('/api/2/db/keys/overview?key=#{ @key_uri }', function(data, textStatus) {
     var table_content = '<tr><th></th><th title="Number of objects with this key">Number of objects</th><th class="values" title="Number of different values">Values</th></tr>';
-    table_content += jQuery.map(['all', 'nodes', 'ways', 'relations'], function(obj, i) {
+    table_content += jQuery.map(['all', 'nodes', 'ways', 'closedways', 'relations'], function(obj, i) {
         var d = data[obj];
         return '<tr><td>' + print_image(obj) + '</td><td class="count">' + print_value_with_percent(d.count, d.count_fraction) + '</td><td class="values">' + print_with_ts(d.values) + '</td></tr>';
     }).join('');

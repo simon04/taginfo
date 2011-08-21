@@ -274,6 +274,7 @@ var create_flexigrid_for = {
                     { display: '<span title="Number of objects with this key"><img src="/img/types/all.16.png" alt=""/> Total</span>',           name: 'count_all',        width: 250, sortable: true, align: 'center' },
                     { display: '<span title="Number of nodes with this key"><img src="/img/types/node.16.png" alt=""/> Nodes</span>',            name: 'count_nodes',      width: 250, sortable: true, align: 'center' },
                     { display: '<span title="Number of ways with this key"><img src="/img/types/way.16.png" alt=""/> Ways</span>',               name: 'count_ways',       width: 250, sortable: true, align: 'center' },
+                    { display: '<span title="Number of closedways with this key"><img src="/img/types/closedway.16.png" alt=""/> Closed Way</span>', name: 'count_closedways',  width: 250, sortable: true, align: 'center' },
                     { display: '<span title="Number of relations with this key"><img src="/img/types/relation.16.png" alt=""/> Relation</span>', name: 'count_relations',  width: 250, sortable: true, align: 'center' },
                     { display: 'Users', name: 'users_all', width: 44, sortable: true, align: 'right' },
                     { display: '<img src="/img/sources/wiki.16.png" alt="Wiki" title="Wiki"/>', name: 'in_wiki', width: 20, sortable: true, align: 'center' },
@@ -291,10 +292,11 @@ var create_flexigrid_for = {
                     data.rows = jQuery.map(data.data, function(row, i) {
                         return { 'cell': [
                             link_to_key(row.key),
-                            print_value_with_percent(row.count_all,       row.count_all_fraction),
-                            print_value_with_percent(row.count_nodes,     row.count_nodes_fraction),
-                            print_value_with_percent(row.count_ways,      row.count_ways_fraction),
-                            print_value_with_percent(row.count_relations, row.count_relations_fraction),
+                            print_value_with_percent(row.count_all,        row.count_all_fraction),
+                            print_value_with_percent(row.count_nodes,      row.count_nodes_fraction),
+                            print_value_with_percent(row.count_ways,       row.count_ways_fraction),
+                            print_value_with_percent(row.count_closedways, row.count_closedways_fraction),
+                            print_value_with_percent(row.count_relations,  row.count_relations_fraction),
                             print_with_ts(row.users_all),
                             row.in_wiki ? '&#x2714;' : '-',
                             row.in_josm ? '&#x2714;' : '-',
