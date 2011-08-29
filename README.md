@@ -31,14 +31,18 @@ Uses:
   is the one from <http://github.com/joto/flexigrid> with
   some bugfixes.)
 
-Icon from:
+Icon from:  
     <http://www.openclipart.org/detail/20131>
 
-Debian/Ubuntu packages:
-    rubygems
+Debian/Ubuntu packages:  
+```
+rubygems
+```
 
-Gems:
-    gem install mongrel rack rack-contrib sinatra json
+Gems:  
+```
+gem install mongrel rack rack-contrib sinatra json
+```
 
 There is a developer mailing list at
 <http://lists.openstreetmap.org/listinfo/taginfo-dev>
@@ -57,9 +61,11 @@ You need a `data` directory in the parent directory of the directory where
 this README is. It must contain the sqlite database files created in the
 data import step or downloaded from <http://taginfo.openstreetmap.de/download>.
 
-To start the web user interface:
-    cd web
-    ./taginfo.rb
+To start the web user interface:  
+```
+cd web
+./taginfo.rb
+```
 
 
 Thanks
